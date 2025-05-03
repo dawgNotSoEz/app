@@ -5,8 +5,9 @@ import '../services/auth_service.dart' as auth_serv;
 import '../services/booking_service.dart' as booking_serv;
 import '../services/review_service.dart' as review_serv;
 import '../services/favorites_service.dart' as favorites_serv;
+import '../services/theme_service.dart';
 import '../models/booking.dart' as model_booking;
-import '../models/review.dart'; // Ensure Review is imported from models for correct type and field access
+import '../models/review.dart' as model_review; // Using alias for consistency
 import '../widgets/animated_gradient_button.dart';
 import 'login_screen.dart';
 
@@ -17,8 +18,9 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProviderStateMixin {
+class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateMixin {
   late TabController _tabController;
+  late TabController _settingsTabController;
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _bioController = TextEditingController();
@@ -29,6 +31,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _settingsTabController = TabController(length: 2, vsync: this);
     
     // Initialize controllers with user data
     final authService = Provider.of<auth_serv.AuthService>(context, listen: false);
@@ -41,6 +44,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
   @override
   void dispose() {
     _tabController.dispose();
+    _settingsTabController.dispose();
     _nameController.dispose();
     _bioController.dispose();
     super.dispose();
@@ -220,26 +224,68 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           ).animate().fadeIn(duration: 500.ms, delay: 300.ms),
           
           // Tab Bar
-          TabBar(
-            controller: _tabController,
-            tabs: const [
-              Tab(text: 'Favorites'),
-              Tab(text: 'Bookings'),
-              Tab(text: 'Reviews'),
-            ],
-          ),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: isDarkMode ? Colors.grey.shade800.withOpacity(0.3) : Colors.grey.shade200.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              labelColor: Theme.of(context).primaryColor,
+              unselectedLabelColor: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
+              indicator: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: isDarkMode ? Colors.grey.shade800 : Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              tabs: const [
+                Tab(text: 'Favorites'),
+                Tab(text: 'Bookings'),
+                Tab(text: 'Reviews'),
+              ],
+            ),
+          ).animate().fadeIn(duration: 500.ms, delay: 400.ms),
           
           // Tab Content
           Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildFavoritesTab(userFavorites),
-                _buildBookingsTab(userBookings),
-                _buildReviewsTab(userReviews),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildFavoritesTab(userFavorites),
+                  _buildBookingsTab(userBookings),
+                  _buildReviewsTab(userReviews),
+                ],
+              ),
             ),
-          ),
+          ).animate().fadeIn(duration: 500.ms, delay: 500.ms),
+          
+          // Settings Button
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: ElevatedButton.icon(
+              onPressed: () {
+                _showSettingsBottomSheet(context);
+              },
+              icon: const Icon(Icons.settings),
+              label: const Text('Settings'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isDarkMode ? Colors.grey.shade800 : Colors.blue.shade50,
+                foregroundColor: isDarkMode ? Colors.white : Colors.blue.shade700,
+                elevation: 0,
+                minimumSize: const Size.fromHeight(50),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ).animate().fadeIn(duration: 500.ms, delay: 600.ms),
         ],
       ),
     );
@@ -675,5 +721,269 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }
+  }
+  
+  void _showSettingsBottomSheet(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final themeService = Provider.of<ThemeService>(context, listen: false);
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: BoxDecoration(
+          color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
+        ),
+        child: Column(
+          children: [
+            // Handle
+            Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            
+            // Title
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'Settings',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: isDarkMode ? Colors.white : Colors.black,
+                ),
+              ),
+            ),
+            
+            // Settings Tabs
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: isDarkMode ? Colors.grey.shade800.withOpacity(0.3) : Colors.grey.shade200.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: TabBar(
+                controller: _settingsTabController,
+                labelColor: Theme.of(context).primaryColor,
+                unselectedLabelColor: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade700,
+                indicator: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: isDarkMode ? Colors.grey.shade800 : Colors.white,
+                ),
+                tabs: const [
+                  Tab(text: 'Appearance'),
+                  Tab(text: 'Preferences'),
+                ],
+              ),
+            ),
+            
+            // Settings Content
+            Expanded(
+              child: TabBarView(
+                controller: _settingsTabController,
+                children: [
+                  _buildAppearanceSettings(themeService, isDarkMode),
+                  _buildPreferencesSettings(isDarkMode),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildAppearanceSettings(ThemeService themeService, bool isDarkMode) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // Theme Toggle
+        Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Theme',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Dark Mode'),
+                    Switch(
+                      value: isDarkMode,
+                      onChanged: (value) {
+                        themeService.toggleTheme();
+                        Navigator.pop(context);
+                      },
+                      activeColor: Theme.of(context).primaryColor,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ).animate().fadeIn(duration: 300.ms, delay: 100.ms),
+        
+        const SizedBox(height: 16),
+        
+        // Text Size
+        Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Text Size',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Slider(
+                  value: 1.0, // Default text scale
+                  min: 0.8,
+                  max: 1.4,
+                  divisions: 6,
+                  label: 'Normal',
+                  onChanged: (value) {
+                    // Would implement text scaling in a real app
+                  },
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Small', style: TextStyle(fontSize: 12)),
+                    const Text('Normal', style: TextStyle(fontSize: 14)),
+                    const Text('Large', style: TextStyle(fontSize: 16)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ).animate().fadeIn(duration: 300.ms, delay: 200.ms),
+      ],
+    );
+  }
+  
+  Widget _buildPreferencesSettings(bool isDarkMode) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // Notifications
+        Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Notifications',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SwitchListTile(
+                  title: const Text('Booking Updates'),
+                  subtitle: const Text('Get notified about your booking status'),
+                  value: true,
+                  onChanged: (value) {
+                    // Would implement notification settings in a real app
+                  },
+                  contentPadding: EdgeInsets.zero,
+                ),
+                SwitchListTile(
+                  title: const Text('Weather Alerts'),
+                  subtitle: const Text('Get notified about ideal windsurf conditions'),
+                  value: true,
+                  onChanged: (value) {
+                    // Would implement notification settings in a real app
+                  },
+                  contentPadding: EdgeInsets.zero,
+                ),
+                SwitchListTile(
+                  title: const Text('New Reviews'),
+                  subtitle: const Text('Get notified about new reviews on your favorite spots'),
+                  value: false,
+                  onChanged: (value) {
+                    // Would implement notification settings in a real app
+                  },
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ],
+            ),
+          ),
+        ).animate().fadeIn(duration: 300.ms, delay: 100.ms),
+        
+        const SizedBox(height: 16),
+        
+        // Units
+        Card(
+          elevation: 2,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Units',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                RadioListTile<String>(
+                  title: const Text('Metric (km/h, °C)'),
+                  value: 'metric',
+                  groupValue: 'metric',
+                  onChanged: (value) {
+                    // Would implement unit settings in a real app
+                  },
+                  contentPadding: EdgeInsets.zero,
+                ),
+                RadioListTile<String>(
+                  title: const Text('Imperial (mph, °F)'),
+                  value: 'imperial',
+                  groupValue: 'metric',
+                  onChanged: (value) {
+                    // Would implement unit settings in a real app
+                  },
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ],
+            ),
+          ),
+        ).animate().fadeIn(duration: 300.ms, delay: 200.ms),
+      ],
+    );
   }
 }

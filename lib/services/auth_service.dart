@@ -39,6 +39,19 @@ class AuthService extends ChangeNotifier {
           _users[key] = UserProfile.fromJson(value);
         });
       }
+
+      // Create demo account if it doesn't exist
+      if (!_users.containsKey('demo')) {
+        _users['demo'] = UserProfile(
+          username: 'demo',
+          email: 'demo@example.com',
+          passwordHash: _hashPassword('password'),
+          createdAt: DateTime.now(),
+          displayName: 'Demo User',
+          bio: 'This is a demo account for testing the app',
+        );
+        await _saveUsers();
+      }
       
       // Check if user is logged in
       _currentUsername = prefs.getString('currentUser');
