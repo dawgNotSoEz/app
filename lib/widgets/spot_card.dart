@@ -7,10 +7,10 @@ class SpotCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const SpotCard({
-    Key? key,
+    super.key,
     required this.spot,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -35,22 +35,71 @@ class SpotCard extends StatelessWidget {
               // Image
               Hero(
                 tag: 'spot-image-${spot.id}',
-                child: CachedNetworkImage(
-                  imageUrl: spot.imageUrl,
-                  height: 220,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey[300],
-                    child: const Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.error),
-                  ),
-                ),
+                child: spot.imageUrl.startsWith('assets/')
+                    ? Container(
+                        height: 220,
+                        width: double.infinity,
+                        color: Colors.blue.withOpacity(0.3),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.sailing,
+                                size: 48,
+                                color: Colors.white.withOpacity(0.8),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                spot.name,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    : CachedNetworkImage(
+                        imageUrl: spot.imageUrl,
+                        height: 220,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: Colors.grey[300],
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          height: 220,
+                          width: double.infinity,
+                          color: Colors.blue.withOpacity(0.3),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.sailing,
+                                  size: 48,
+                                  color: Colors.white.withOpacity(0.8),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  spot.name,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
               ),
               
               // Gradient overlay

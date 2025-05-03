@@ -2,21 +2,21 @@ import 'package:flutter/material.dart';
 
 class AnimatedGradientButton extends StatefulWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final List<Color> gradientColors;
   final double width;
   final double height;
   final double borderRadius;
 
   const AnimatedGradientButton({
-    Key? key,
+    super.key,
     required this.text,
     required this.onPressed,
     this.gradientColors = const [Color(0xFF00C6FF), Color(0xFF0072FF)],
     this.width = double.infinity,
     this.height = 56.0,
     this.borderRadius = 16.0,
-  }) : super(key: key);
+  });
 
   @override
   State<AnimatedGradientButton> createState() => _AnimatedGradientButtonState();
@@ -51,9 +51,9 @@ class _AnimatedGradientButtonState extends State<AnimatedGradientButton> with Si
   Widget build(BuildContext context) {
     return GestureDetector(
       onTapDown: (_) => _animationController.forward(),
-      onTapUp: (_) {
+      onTapUp: widget.onPressed == null ? null : (_) {
         _animationController.reverse();
-        widget.onPressed();
+        widget.onPressed?.call();
       },
       onTapCancel: () => _animationController.reverse(),
       child: AnimatedBuilder(
